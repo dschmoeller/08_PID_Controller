@@ -33,10 +33,13 @@ string hasData(string s) {
 int main() {
   uWS::Hub h;
 
-  PID pid;
-  /**
-   * TODO: Initialize the pid variable.
-   */
+  // Define PID controller
+  PID pid = PID(); 
+  double Kp = 0.1; 
+  double Ki = 0.001; 
+  double Kd = 0.5;  
+  // Initialize PID control parameters
+  pid.Init(Kp, Ki, Kd); 
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
@@ -57,13 +60,14 @@ int main() {
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
           double steer_value;
-          /**
-           * TODO: Calculate steering value here, remember the steering value is
-           *   [-1, 1].
-           * NOTE: Feel free to play around with the throttle and speed.
-           *   Maybe use another PID controller to control the speed!
-           */
-          
+         
+          // Apply PID control
+          pid.UpdateError(cte); 
+          steer_value = pid.Control(); 
+          // Apply steer contstraints
+          if (steer_value > 1){ steer_value = 1; }
+          else if (steer_value < -1){ steer_value = -1; }   
+
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
                     << std::endl;
